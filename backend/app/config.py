@@ -7,6 +7,11 @@ class Settings:
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 # 24 hours
+    ALLOWED_ORIGINS: list[str] = [
+        origin.strip()
+        for origin in os.getenv("ALLOWED_ORIGINS", "*").split(",")
+        if origin.strip()
+    ]
     
     # Neo4j Settings
     NEO4J_URI: str = os.getenv("NEO4J_URI", "bolt://localhost:7687")
@@ -15,5 +20,7 @@ class Settings:
     
     # SQLite Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./hospital_cds.db")
+    MONGODB_URI: str = os.getenv("MONGODB_URI", "")
+    MONGODB_DATABASE: str = os.getenv("MONGODB_DATABASE", "hospital_cds")
 
 settings = Settings()

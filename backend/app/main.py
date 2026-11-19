@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database.sqlite_db import init_db
+from app.database.mongo_db import get_mongo_database, close_mongo_database
 from app.routes.auth_routes import router as auth_router
 from app.routes.dashboard_routes import router as dashboard_router
 from app.routes.patient_routes import router as patient_router
@@ -25,9 +26,17 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize Database and Knowledge Graph
     logger.info("Starting Knowledge Graph Drug Interaction CDS backend...")
     init_db()
+    try:
+        mongo_database = get_mongo_database()
+        if mongo_database is not None:
+            logger.info("MongoDB Atlas connection verified.")
+    except Exception as exc:
+        logger.error("MongoDB Atlas connection failed: %s", exc)
+        raise
     logger.info("Database and graph verified and ready.")
     yield
     # Shutdown
+    close_mongo_database()
     logger.info("Shutting down backend...")
 
 app = FastAPI(
@@ -42,7 +51,7 @@ app = FastAPI(
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
